@@ -577,11 +577,6 @@ class Script(modules.scripts.Script):
                 #escape reload loras in hires-fix
 
     def postprocess(self, p, processed, *args):
-        if self.active : 
-            with open(os.path.join(paths.data_path, "params.txt"), "w", encoding="utf8") as file:
-                processedx = Processed(p, [], p.seed, "")
-                file.write(processedx.infotext(p, 0))
-        
         if "Pro" in self.mode and not fseti("hidepmask"):
             savepmasks(self, processed)
 
