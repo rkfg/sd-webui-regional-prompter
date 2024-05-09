@@ -30,9 +30,11 @@ from scripts.regions import (MAXCOLREG, IDIM, KEYBRK, KEYBASE, KEYCOMM, KEYPROMP
                              draw_image, save_mask, load_mask, changecs,
                              floatdef, inpaintmaskdealer, makeimgtmp, matrixdealer)
 
+KEYBRK_R = "RP_TEMP_REPLACE"
 FLJSON = "regional_prompter_presets.json"
 OPTAND = "disable convert 'AND' to 'BREAK'"
 OPTUSEL = "Use LoHa or other"
+OPTBREAK = "Use BREAK to change chunks"
 # Modules.basedir points to extension's dir. script_path or scripts.basedir points to root.
 PTPRESET = modules.scripts.basedir()
 PTPRESETALT = os.path.join(paths.script_path, "scripts")
@@ -65,7 +67,7 @@ PROMPTURL = GUIDEURL + r"/blob/main/prompt_en.md"
 PROMPTURL2 = GUIDEURL + r"/blob/main/prompt_ja.md"
 
 
-def ui_tab(mode, submode):
+def ui_tab(mode, submode, eladd):
     """Structures components for mode tab.
     
     Semi harcoded but it's clearer this way.
@@ -75,18 +77,18 @@ def ui_tab(mode, submode):
         with gr.Row():
             mguide = gr.HTML(value = fhurl(MATRIXURL, "Matrix mode guide")) 
         with gr.Row():
-            mmode = gr.Radio(label="Main Splitting", choices=submode, value="Columns", type="value", interactive=True,elem_id="RP_main_splitting")
-            ratios = gr.Textbox(label="Divide Ratio",lines=1,value="1,1",interactive=True,elem_id="RP_divide_ratio",visible=True)
+            mmode = gr.Radio(label="Main Splitting", choices=submode, value="Columns", type="value", interactive=True,elem_id="RP_main_splitting" + eladd)
+            ratios = gr.Textbox(label="Divide Ratio",lines=1,value="1,1",interactive=True,elem_id="RP_divide_ratio" + eladd,visible=True)
         with gr.Row():
             with gr.Column():
                 with gr.Row():
-                    twid = gr.Slider(label="Width", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_matrix_width")
-                    thei = gr.Slider(label="Height", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_matrix_height")
+                    twid = gr.Slider(label="Width", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_matrix_width" + eladd)
+                    thei = gr.Slider(label="Height", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_matrix_height" + eladd)
                 maketemp = gr.Button(value="visualize and make template")
 
-                template = gr.Textbox(label="template",interactive=True,visible=True,elem_id="RP_matrix_template")
-                flipper = gr.Checkbox(label = 'flip "," and ";"', value = False,elem_id="RP_matrix_flip")
-                overlay = gr.Slider(label="Overlay Ratio", minimum=0, maximum=1, step=0.1, value=0.5,elem_id="RP_matrix_overlay")
+                template = gr.Textbox(label="template",interactive=True,visible=True,elem_id="RP_matrix_template" + eladd)
+                flipper = gr.Checkbox(label = 'flip "," and ";"', value = False,elem_id="RP_matrix_flip" + eladd)
+                overlay = gr.Slider(label="Overlay Ratio", minimum=0, maximum=1, step=0.1, value=0.5,elem_id="RP_matrix_overlay" + eladd)
 
             with gr.Column():
                 areasimg = gr.Image(type="pil", show_label  = False, height=256, width=256,source = "upload", interactive=True)
@@ -96,15 +98,15 @@ def ui_tab(mode, submode):
         with gr.Row():
             xguide = gr.HTML(value = fhurl(MASKURL, "Inpaint+ mode guide"))
         with gr.Row(): # Creep: Placeholder, should probably make this invisible.
-            xmode = gr.Radio(label="Mask mode", choices=submode, value="Mask", type="value", interactive=True,elem_id="RP_mask_mode")
+            xmode = gr.Radio(label="Mask mode", choices=submode, value="Mask", type="value", interactive=True,elem_id="RP_mask_mode" + eladd)
         with gr.Row(): # CREEP: Css magic to make the canvas bigger? I think it's in style.css: #img2maskimg -> height.
-            polymask = gr.Image(label = "Do not upload here until bugfix",elem_id="polymask",
+            polymask = gr.Image(label = "Do not upload here until bugfix",elem_id="polymask" + eladd,
                                 source = "upload", mirror_webcam = False, type = "numpy", tool = "sketch")#.style(height=480)
         with gr.Row():
             with gr.Column():
-                num = gr.Slider(label="Region", minimum=-1, maximum=MAXCOLREG, step=1, value=1,elem_id="RP_mask_region")
-                canvas_width = gr.Slider(label="Inpaint+ Width", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_mask_width")
-                canvas_height = gr.Slider(label="Inpaint+ Height", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_mask_height")
+                num = gr.Slider(label="Region", minimum=-1, maximum=MAXCOLREG, step=1, value=1,elem_id="RP_mask_region" + eladd)
+                canvas_width = gr.Slider(label="Inpaint+ Width", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_mask_width" + eladd)
+                canvas_height = gr.Slider(label="Inpaint+ Height", minimum=64, maximum=2048, value=512, step=8,elem_id="RP_mask_height" + eladd)
                 btn = gr.Button(value = "Draw region + show mask")
                 # btn2 = gr.Button(value = "Display mask") # Not needed.
                 cbtn = gr.Button(value="Create mask area")
@@ -124,8 +126,8 @@ def ui_tab(mode, submode):
             pguide = gr.HTML(value = fhurl(PROMPTURL, "Prompt mode guide"))
             pguide2 = gr.HTML(value = fhurl(PROMPTURL2, "Extended prompt guide (jp)"))
         with gr.Row():
-            pmode = gr.Radio(label="Prompt mode", choices=submode, value="Prompt", type="value", interactive=True, elem_id="RP_prompt_mode")
-            threshold = gr.Textbox(label = "threshold", value = 0.4, interactive=True, elem_id="RP_prompt_threshold")
+            pmode = gr.Radio(label="Prompt mode", choices=submode, value="Prompt", type="value", interactive=True, elem_id="RP_prompt_mode" + eladd)
+            threshold = gr.Textbox(label = "threshold", value = 0.4, interactive=True, elem_id="RP_prompt_threshold" + eladd)
         
         vret = [pmode, threshold]
 
@@ -256,33 +258,35 @@ class Script(modules.scripts.Script):
 
         presets = []
 
+        eladd = "i2i" if is_img2img else "t2i"
+
         presets = loadpresets(filepath)
         presets = LPRESET.update(presets)
 
-        with gr.Accordion("Regional Prompter", open=False, elem_id="RP_main"):
+        with gr.Accordion("Regional Prompter", open=False, elem_id="RP_main" + eladd):
             with gr.Row():
-                active = gr.Checkbox(value=False, label="Active",interactive=True,elem_id="RP_active")
+                active = gr.Checkbox(value=False, label="Active",interactive=True,elem_id="RP_active" + eladd)
                 urlguide = gr.HTML(value = fhurl(GUIDEURL, "Usage guide"))
             with gr.Row():
-                # mode = gr.Radio(label="Divide mode", choices=["Horizontal", "Vertical","Mask","Prompt","Prompt-Ex"], value="Horizontal",  type="value", interactive=True)
-                calcmode = gr.Radio(label="Generation mode", choices=["Attention", "Latent"], value="Attention",  type="value", interactive=True, elem_id="RP_generation_mode",)
+                #smode = gr.Radio(label="Divide mode", choices=["Horizontal", "Vertical","Mask","Prompt","Prompt-Ex"], value="Horizontal",  type="value", interactive=True)
+                calcmode = gr.Radio(label="Generation Mode", choices=["Attention", "Latent"], value="Attention",  type="value", interactive=True, elem_id="RP_generation_mode" + eladd,)
             with gr.Row(visible=True):
                 # ratios = gr.Textbox(label="Divide Ratio",lines=1,value="1,1",interactive=True,elem_id="RP_divide_ratio",visible=True)
-                baseratios = gr.Textbox(label="Base Ratio", lines=1,value="0.2",interactive=True,  elem_id="RP_base_ratio", visible=True)
+                baseratios = gr.Textbox(label="Base Ratio", lines=1,value="0.2",interactive=True,  elem_id="RP_base_ratio" + eladd, visible=True)
             with gr.Row():
-                usebase = gr.Checkbox(value=False, label="Use base prompt",interactive=True, elem_id="RP_usebase")
-                usecom = gr.Checkbox(value=False, label="Use common prompt",interactive=True,elem_id="RP_usecommon")
-                usencom = gr.Checkbox(value=False, label="Use common negative prompt",interactive=True,elem_id="RP_usecommon_negative")
+                usebase = gr.Checkbox(value=False, label="Use base prompt",interactive=True, elem_id="RP_usebase" + eladd)
+                usecom = gr.Checkbox(value=False, label="Use common prompt",interactive=True,elem_id="RP_usecommon" + eladd)
+                usencom = gr.Checkbox(value=False, label="Use common negative prompt",interactive=True,elem_id="RP_usecommon_negative" + eladd)
             
             # Tabbed modes.
-            with gr.Tabs(elem_id="RP_mode") as tabs:
+            with gr.Tabs(elem_id="RP_mode" + eladd) as tabs:
                 rp_selected_tab = gr.State("Matrix") # State component to document current tab for gen.
                 # ltabs = []
                 ltabp = []
                 for (i, (md,smd)) in enumerate(RPMODES):
                     with gr.TabItem(**fgrprop(md)) as tab: # Tabs with a formatted id.
                         # ltabs.append(tab)
-                        ltabp.append(ui_tab(md, smd))
+                        ltabp.append(ui_tab(md, smd, eladd))
                     # Tab switch tags state component.
                     tab.select(fn = lambda tabnum = i: RPMODES[tabnum][0], inputs=[], outputs=[rp_selected_tab])
 
@@ -294,18 +298,18 @@ class Script(modules.scripts.Script):
             with gr.Accordion("Presets",open = False):
                 with gr.Row():
                     availablepresets = gr.Dropdown(label="Presets", choices=presets, type="index")
-                    applypresets = gr.Button(value="Apply Presets",variant='primary',elem_id="RP_applysetting")
+                    applypresets = gr.Button(value="Apply Presets",variant='primary',elem_id="RP_applysetting" + eladd)
                 with gr.Row():
-                    presetname = gr.Textbox(label="Preset Name",lines=1,value="",interactive=True,elem_id="RP_preset_name",visible=True)
-                    savesets = gr.Button(value="Save to Presets",variant='primary',elem_id="RP_savesetting")
+                    presetname = gr.Textbox(label="Preset Name",lines=1,value="",interactive=True,elem_id="RP_preset_name" + eladd,visible=True)
+                    savesets = gr.Button(value="Save to Presets",variant='primary',elem_id="RP_savesetting" + eladd)
             with gr.Row():
-                lstop = gr.Textbox(label="LoRA stop step",value="0",interactive=True,elem_id="RP_ne_tenc_ratio",visible=True)
-                lstop_hr = gr.Textbox(label="LoRA Hires stop step",value="0",interactive=True,elem_id="RP_ne_unet_ratio",visible=True)
-                lnter = gr.Textbox(label="LoRA in negative textencoder",value="0",interactive=True,elem_id="RP_ne_tenc_ratio_negative",visible=True)
-                lnur = gr.Textbox(label="LoRA in negative U-net",value="0",interactive=True,elem_id="RP_ne_unet_ratio_negative",visible=True)
+                lstop = gr.Textbox(label="LoRA stop step",value="0",interactive=True,elem_id="RP_ne_tenc_ratio" + eladd,visible=True)
+                lstop_hr = gr.Textbox(label="LoRA Hires stop step",value="0",interactive=True,elem_id="RP_ne_unet_ratio" + eladd,visible=True)
+                lnter = gr.Textbox(label="LoRA in negative textencoder",value="0",interactive=True,elem_id="RP_ne_tenc_ratio_negative" + eladd,visible=True)
+                lnur = gr.Textbox(label="LoRA in negative U-net",value="0",interactive=True,elem_id="RP_ne_unet_ratio_negative" + eladd,visible=True)
             with gr.Row():
-                options = gr.CheckboxGroup(value=False, label="Options",choices=[OPTAND, OPTUSEL, "debug", "debug2"], interactive=True, elem_id="RP_options")
-            mode = gr.Textbox(value = "Matrix",visible = False, elem_id="RP_divide_mode")
+                options = gr.CheckboxGroup(value=False, label="Options",choices=[OPTAND, OPTUSEL,OPTBREAK, "debug", "debug2"], interactive=True, elem_id="RP_options" + eladd)
+            mode = gr.Textbox(value = "Matrix",visible = False, elem_id="RP_divide_mode" + eladd)
 
             dummy_img = gr.Image(type="pil", show_label  = False, height=256, width=256,source = "upload", interactive=True, visible = False)
 
@@ -455,6 +459,7 @@ class Script(modules.scripts.Script):
 
         self.all_prompts = p.all_prompts.copy()
         self.all_negative_prompts = p.all_negative_prompts.copy()
+        self.optbreak = OPTBREAK in options
 
         # SBM ddim / plms detection.
         self.isvanilla = p.sampler_name in ["DDIM", "PLMS", "UniPC"]
@@ -478,7 +483,7 @@ class Script(modules.scripts.Script):
     
         loraverchekcer(self)                                                  #check web-ui version
         if OPTAND not in options: allchanger(p, "AND", KEYBRK)                                          #Change AND to BREAK
-        if any(x in self.mode for x in ["Ver","Hor"]):
+        if any(x in self.mode for x in ["Ver","Hor"]) and not self.optbreak:
             keyconverter(aratios, self.mode, usecom, usebase, p) #convert BREAKs to ADDROMM/ADDCOL/ADDROW
         bckeydealer(self, p)                                                      #detect COMM/BASE keys
         keycounter(self, p)                                                       #count keys and set to self.divide
@@ -486,7 +491,7 @@ class Script(modules.scripts.Script):
         if "Pro" not in self.mode: # skip region assign in prompt mode
             ##### region mode
             if "Mask" in self.mode:
-                keyreplacer(p) #change all keys to BREAK
+                keyreplacer(self, p) #change all keys to BREAK
                 inpaintmaskdealer(self, p, bratios, usebase, polymask)
 
             elif any(x in self.mode for x in ["Ver","Hor","Ran"]):
@@ -513,11 +518,13 @@ class Script(modules.scripts.Script):
             denoiserdealer(self)
 
         neighbor(self,p)                                                    #detect other extention
-        keyreplacer(p)                                                      #replace all keys to BREAK
+        if self.optbreak: allchanger(p,KEYBRK,KEYBRK_R)
+        keyreplacer(self, p)                                                      #replace all keys to BREAK
         blankdealer(self, p)                                               #add "_" if prompt of last region is blank
         commondealer(p, self.usecom, self.usencom)          #add commom prompt to all region
         if "La" in self.calc: allchanger(p, KEYBRK,"AND")      #replace BREAK to AND in Latent mode
         if tokendealer(self, p): return unloader(self,p)          #count tokens and calcrate target tokens
+        if self.optbreak: allchanger(p,KEYBRK_R,KEYBRK)
         thresholddealer(self, p, threshold)                          #set threshold
         
         bratioprompt(self, bratios)
@@ -557,6 +564,9 @@ class Script(modules.scripts.Script):
             # SBM Before_process_batch was added in feb-mar, adding fallback.
             if not hasattr(self,"current_prompts"):
                 self.current_prompts = kwargs["prompts"].copy()
+
+            if self.debug : print(self.current_prompts)
+
             p.all_prompts[p.iteration * p.batch_size:(p.iteration + 1) * p.batch_size] = self.all_prompts[p.iteration * p.batch_size:(p.iteration + 1) * p.batch_size]
             p.all_negative_prompts[p.iteration * p.batch_size:(p.iteration + 1) * p.batch_size] = self.all_negative_prompts[p.iteration * p.batch_size:(p.iteration + 1) * p.batch_size]
             if "Pro" in self.mode:
@@ -677,14 +687,22 @@ def allchanger(p, a, b):
 def tokendealer(self, p):
     seps = "AND" if "La" in self.calc else KEYBRK
     self.seps = seps
+    
     text, _ = extra_networks.parse_prompt(p.all_prompts[0]) # SBM From update_token_counter.
     text = prompt_parser.get_learned_conditioning_prompt_schedules([text],p.steps)[0][0][1]
     ppl = text.split(seps)
+    ppl = [p.replace(KEYBRK_R,KEYBRK) for p in ppl]
+
     ntext, _ = extra_networks.parse_prompt(p.all_negative_prompts[0]) 
     npl = ntext.split(seps)
+    npl = [p.replace(KEYBRK_R,KEYBRK) for p in npl]
     eqb = len(ppl) == len(npl)
     targets =[p.split(",")[-1] for p in ppl[1:]]
     pt, nt, ppt, pnt, tt = [], [], [], [], []
+
+    if self.optbreak:
+        p.all_prompts[0] = p.all_prompts[0].replace(KEYBRK_R, KEYBRK)
+        p.all_negative_prompts[0] = p.all_negative_prompts[0].replace(KEYBRK_R, KEYBRK)
 
     padd = 0
     
@@ -1099,7 +1117,7 @@ def keyconverter(aratios,mode,usecom,usebase,p):
         if change == KEYBASE and KEYBASE in p.prompt: continue
         p.prompt= p.prompt.replace(KEYBRK,change,1)
 
-def keyreplacer(p):
+def keyreplacer(self,p):
     '''
     replace all separators to BREAK
     p.all_prompt and p.all_negative_prompt
@@ -1112,8 +1130,11 @@ def keyreplacer(p):
             p.all_negative_prompts[i] = p.all_negative_prompts[i].replace(key,KEYBRK)
 
 def keycounter(self, p):
-    pc = sum([p.prompt.count(text) for text in ALLALLKEYS])
-    npc = sum([p.negative_prompt.count(text) for text in ALLALLKEYS])
+    keys = ALLALLKEYS.copy()
+    if self.optbreak:
+        keys.remove(KEYBRK)
+    pc = sum([p.prompt.count(text) for text in keys])
+    npc = sum([p.negative_prompt.count(text) for text in keys])
     self.divide = [pc + 1, npc + 1]
 
 def resetpcache(p):
